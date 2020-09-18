@@ -12,6 +12,8 @@ enum STATE{
 enum FOLLOWING_STATE{
   OBS, TURNING, TURNADJ, FORWARD, FORADJ
 }fstate;
+
+int mdir[] = {-MAZE_WIDTH, 1, MAZE_WIDTH, -1};
 int main(int argc, char **argv) {
   init();
   double target = 0;
@@ -29,7 +31,7 @@ int main(int argc, char **argv) {
   fstate = FOLLOWING_STATE::TURNING;
   
   bool gunningForHome = false;
-
+  int tsteps = 0;
   while (robot->step(timeStep) != -1) {
       cout<<"------------------------------------"<<endl;
       if(gunningForHome){
@@ -43,7 +45,8 @@ int main(int argc, char **argv) {
       cout<<"U: "<<(int)maze.tiles[currTile].U;
       cout<<", R: "<<(int)maze.tiles[currTile].R;
       cout<<", D: "<<(int)maze.tiles[currTile].D;
-      cout<<", L: "<<(int)maze.tiles[currTile].L<<endl;
+      cout<<", L: "<<(int)maze.tiles[currTile].L;
+      cout<<", V: "<<(int)maze.tiles[currTile].victim<<endl;
       if(si.color[RGBA::G] < 15 && state != PIT){
         maze.tiles[path.top()].U = 0;
         maze.tiles[path.top()].D = 0;
@@ -91,9 +94,19 @@ int main(int argc, char **argv) {
            case FOLLOWING_STATE::TURNING:
            {
              cout<<"TURNING"<<endl;
+             if((si.lHeat >= 30 || si.rHeat >= 30) && !maze.tiles[currTile].victim){
+                  cout<<"HEAT VICTIM"<<endl;
+                    maze.tiles[currTile].victim = 1;
+                
+                setSpeed(0, 0);
+                int step = 0;
+                while(robot->step(timeStep) != -1 && step < 7 / 0.032)
+                  step++;
+                writeEmitter('T');
+              }
              if(turn(dir[get_direction(&maze, currTile - path.top())])){
                setSpeed(0, 0);
-
+                
                init = si.lEncCt;
                currDir = get_direction(&maze, currTile - path.top());
                target = (((si.dist[0] > si.dist[1])?si.dist[0]:si.dist[1])<100)?((si.dist[0] > si.dist[1])?si.dist[0]:si.dist[1]):TILE_SIZE;
@@ -160,10 +173,13 @@ int main(int argc, char **argv) {
          }
          break;
        }
+       case STATE::VICTIM:
+       {
+         
+       }
       }
   };
-
- 
+  writeEmitter('E');
   cout<<"Done!"<<endl;
   delete robot;
   return 0;

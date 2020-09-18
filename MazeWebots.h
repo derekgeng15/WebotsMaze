@@ -7,6 +7,7 @@
 #include <webots/LightSensor.hpp>
 #include <webots/Gyro.hpp>
 #include <webots/GPS.hpp>
+#include <webots/Emitter.hpp>
 #include <cstring>
 #include <cmath>
 
@@ -36,6 +37,8 @@ extern Camera * rCam;
 extern LightSensor *lHeat;
 extern LightSensor *rHeat;
 
+extern Emitter *emitter;
+
 extern int timeStep;
 
 const double dir[] = {0, -90, 180, 90};
@@ -63,7 +66,7 @@ enum GPSAXIS{
 };
 
 enum ANGLE{
-  YAW, PITCH,  ROLL
+  YAW, PITCH, ROLL
 };
 void init();
 void readSensors();
@@ -71,3 +74,4 @@ void printData();
 void setSpeed(double left, double right);
 bool forward(double dist, double init);
 bool turn(double angle);
+void writeEmitter(char c);

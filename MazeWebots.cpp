@@ -14,6 +14,8 @@ Camera *lCam;
 Camera *rCam;
 LightSensor *lHeat;
 LightSensor *rHeat;
+
+Emitter *emitter;
 SensorInfo si;
 
 int timeStep;
@@ -31,6 +33,7 @@ void init(){
   rHeat = robot->getLightSensor("right_heat_sensor");
   lCam = robot->getCamera("camera_left");
   rCam = robot->getCamera("camera_right");
+  emitter = robot->getEmitter("emitter");
   colorSensor = robot->getCamera("colour_sensor");
   for(int i = 0; i < NUM_DIST_SENSORS; i++){
     ds[i] = robot->getDistanceSensor("ps" + std::to_string(i));
@@ -75,7 +78,7 @@ void readSensors(){
     const unsigned char * img = colorSensor->getImage();
     for(int i = R; i != RGBA::A; i++)
       si.color[i] = img[i];
-    for(int i = X; i != GPSAXIS::Z; i++)
+    for(int i = X; i <= GPSAXIS::Z; i++)
       si.coord[i] = gps->getValues()[i];
     si.lHeat = lHeat->getValue();
     si.rHeat = rHeat->getValue();
@@ -143,4 +146,13 @@ bool turn(double angle){
   setSpeed(-(error * kP + (error - prevError) * kD), error * kP + (error - prevError) * kD);
   prevError = error;
   return false;
+}
+void writeEmitter(char c){
+  char message[9];
+  int x = si.coord[X] * 100;
+  int z = si.coord[Z] * 100;
+  memcpy(&message[0], &x, 4);
+  memcpy(&message[4], &z, 4);
+  message[8] = c;
+  emitter->send(message, 9);
 }
